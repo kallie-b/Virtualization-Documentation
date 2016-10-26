@@ -23,57 +23,56 @@ One computer system (physical or virtual) running Windows Server 2016. If you ar
 
 > Critical updates are needed in order for the Windows Container feature to function. Please install all updates before working through this tutorial.
 
-## 1. Install Container Feature
+## 1. Install Docker
 
-The container feature needs to be enabled before working with Windows containers. To do so run the following command in an elevated PowerShell session.
+To install Docker we'll use the [OneGet provider PowerShell module](https://github.com/oneget/oneget). The provider will enable the containers feature on your machine and install Docker - this will require a reboot. Docker is required in order to work with Windows containers. It consists of the Docker Engine and the Docker client.
+
+Open an elevated PowerShell session and run the following commands.
+
+First we'll install the OneGet PowerShell module.
 
 ```none
-Install-WindowsFeature containers
+Install-Module -Name DockerMsftProvider -Repository PSGallery -Force
 ```
 
-When the feature installation has completed, reboot the computer.
+Next we'll use OneGet to install the latest version of Docker.
+```none
+Install-Package -Name docker -ProviderName DockerMsftProvider
+```
+
+When PowerShell asks you whether to trust the package source 'DockerDefault', type A to continue the installation. When the installation is complete, reboot the computer.
 
 ```none
 Restart-Computer -Force
 ```
 
-## 2. Install Docker
+## 2. Install Windows Updates
 
-Docker is required in order to work with Windows containers. Docker consists of the Docker Engine, and the Docker client. For this exercise, both will be installed.
-
-Download the release candidate of the Commercially Supported Docker Engine and client as a zip archive.
+To ensure your Windows Server system is up-to-date, you should install Windows Updates by running:
 
 ```none
-Invoke-WebRequest "https://download.docker.com/components/engine/windows-server/cs-1.12/docker-1.12.2.zip" -OutFile "$env:TEMP\docker.zip" -UseBasicParsing
+sconfig
 ```
 
-Expand the zip archive into Program Files.
+You'll see a text-based configuration menu, where you can choose option 6 to Download and Install Updates:
 
 ```none
-Expand-Archive -Path "$env:TEMP\docker.zip" -DestinationPath $env:ProgramFiles
+===============================================================================
+                         Server Configuration
+===============================================================================
+
+1) Domain/Workgroup:                    Workgroup:  WORKGROUP
+2) Computer Name:                       WIN-HEFDK4V68M5
+3) Add Local Administrator
+4) Configure Remote Management          Enabled
+
+5) Windows Update Settings:             DownloadOnly
+6) Download and Install Updates
+7) Remote Desktop:                      Disabled
+...
 ```
 
-Add the Docker directory to the system path.
-
-```none
-# For quick use, does not require shell to be restarted.
-$env:path += ";c:\program files\docker"
-
-# For persistent use, will apply even after a reboot. 
-[Environment]::SetEnvironmentVariable("Path", $env:Path + ";C:\Program Files\Docker", [EnvironmentVariableTarget]::Machine)
-```
-
-To install Docker as a Windows service, run the following.
-
-```none
-dockerd.exe --register-service
-```
-
-Once installed, the service can be started.
-
-```none
-Start-Service docker
-```
+When prompted, choose option A to download all updates.
 
 ## 3. Deploy Your First Container
 
